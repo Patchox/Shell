@@ -1,0 +1,85 @@
+#!/bin/bash
+
+USER=`whoami`
+HOSTNAME=`uname -n`
+ROOT=`df -Ph | grep root | awk '{print $4}' | tr -d '\n'`
+HOME=`df -Ph | grep home | awk '{print $4}' | tr -d '\n'`
+BACKUP=`df -Ph | grep backup | awk '{print $4}' | tr -d '\n'`
+
+MEMORY1=`free -t -m | grep "buffers/cache" | awk '{print $3" MB";}'`
+MEMORY2=`free -t -m | grep "Mem" | awk '{print $2" MB";}'`
+PSA=`ps -Afl | wc -l`
+
+IP=`ifconfig eth0 | grep "inet adr" | sed 's/.*adr:\([0-9]*\.[0-9]*\.[0-9]*\.[0-9]*\).*/\1/'`
+VDeb=`cat /etc/debian_version`
+# time of day
+HOUR=$(date +"%H")
+if [ $HOUR -lt 12  -a $HOUR -ge 0 ]
+then    TIME="morning"
+elif [ $HOUR -lt 17 -a $HOUR -ge 12 ] 
+then    TIME="afternoon"
+else 
+    TIME="evening"
+fi
+
+#System uptime
+uptime=`cat /proc/uptime | cut -f1 -d.`
+upDays=$((uptime/60/60/24))
+upHours=$((uptime/60/60%24))
+upMins=$((uptime/60%60))
+upSecs=$((uptime%60))
+
+#System load
+LOAD1=`cat /proc/loadavg | awk {'print $1'}`
+LOAD5=`cat /proc/loadavg | awk {'print $2'}`
+LOAD15=`cat /proc/loadavg | awk {'print $3'}`
+
+echo "
+                                ²²²²  ²²²²  ²
+                                ²±±² ²²±±±² ²²
+                       ²       ²±±²  ²±±±² ²±²
+                     ²²±² ²   ²±±±² ²±±±±²²±±²
+                ²²²²²±±±²²±² ²±±±±²²±±±±±±²±±±²
+          ²²²²²²±±±±±±±² ²±² ²±±±² ²±±±±±²²²±±²
+       ²²²±±±±±±±±±±±±² ²±±²²±±±²  ²±±±±±±²±±²±±²
+      ²±±±±±±±±±±±±±±²²²±±² ²±±±² ²±±±±±±±±±±²±±²
+     ²±±±±±±±±±±±±±±²±±±±² ²±±±²  ²±±±±±±±±±±²±±²
+    ²±±±±±±±±±±±±±±±±±±±±²²±±±²   ²±±±±±±±±±±²±±²
+   ²±±±±±±±±±±±±±±±±±±±±±±±±±±²  ²±±±±±±±±±±±²±±²
+  ²±±±±±±±±±±±±±±±±±±±±±±±±±±²  ²±±±±±²±±±±±±±±²
+  ²±±±±±±±±±±±±±±±±±±±±±±±±±²  ²±±±±±±±±±±±±±±±²
+  ²±±±±±±±²²²²²²±±±±±±±±±±±±²²²±±±±±±±±±±±±±±±²
+  ²±±±±±²²      ²±±±±±±±±±±±±±±±±²±±±±±±±±±±²²
+   ²±±²²        ²±±±±±±±±±±±±±±±±±±±±±±±±±±²
+    ²²         ²±±±±±±±±±±±±±±±±±±±±±±±±±²²
+               ²±±±±±±±±±±±±±±±±±±±±±±±²²
+                ²²²±±±±±±±±±±±²±±±±±±²²
+                   ²²²²±±±±±±±±±±±²²
+                      ²²±±±±±±±²²²
+                   ²²²±±±±±±²²²
+                ²²²±±±±±±²²²
+     ²²²     ²²²±±±±±²²²²
+    ²±±²  ²²²±±±±±²²²
+   ²±±±²²²±±±±²²²²
+  ²±±±±±±±±²²²
+ ²±±±±±±²²²
+²±±±±²²²
+ ²²²²
+ 
+Good $TIME $USER"
+
+echo "
+===========================================================================
+ - Hostname............: $HOSTNAME
+ - Release.............: `cat /etc/issue`
+ - Users...............: Currently `users | wc -w` user(s) logged on
+ - ETH0 IP.............: $IP
+===========================================================================
+ - Current user........: $USER
+ - CPU usage...........: $LOAD1, $LOAD5, $LOAD15 (1, 5, 15 min)
+ - Memory used.........: $MEMORY1 / $MEMORY2
+ - Swap in use.........: `free -m | tail -n 1 | awk '{print $3}'` MB
+ - Processes...........: $PSA running
+ - System uptime.......: $upDays days $upHours hours $upMins minutes $upSecs seconds
+===========================================================================
+ "
